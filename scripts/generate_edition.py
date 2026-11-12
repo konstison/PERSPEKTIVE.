@@ -1,16 +1,18 @@
 import os
-import json
-import time
-import urllib.request
-import urllib.parse
-import xml.etree.ElementTree as ET
-from datetime import datetime
 from google import genai
 from google.genai import types
 
-# Initialisierung für den Cloud-/Vertex-Schlüssel (erkennt GEMINI_API_KEY automatisch)
-# Falls Google Cloud aktiv ist, nutzen wir das Standard-Client-Setup:
-client = genai.Client()
+# Holt den Schlüssel und das Projekt direkt aus den Umgebungsvariablen
+api_key = os.environ.get("GEMINI_API_KEY")
+project_id = os.environ.get("GOOGLE_CLOUD_PROJECT", "53810350049")
+
+# Erzwungene Initialisierung mit direktem API-Key und Vertex-Modus
+client = genai.Client(
+    api_key=api_key,
+    vertexai=True,
+    project=project_id,
+    location="us-central1"
+)
 MODEL_NAME = "gemini-2.5-flash"
 
 RSS_FEEDS = [
