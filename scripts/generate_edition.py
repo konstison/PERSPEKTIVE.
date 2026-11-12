@@ -8,8 +8,10 @@ from datetime import datetime
 from google import genai
 from google.genai import types
 
+# Ganz einfache Initialisierung über den API-Key (ohne Vertex AI / Cloud-Projekt-Zwang)
 api_key = os.environ.get("GEMINI_API_KEY")
-project_id = os.environ.get("GOOGLE_CLOUD_PROJECT", "53810350049")
+client = genai.Client(api_key=api_key)
+MODEL_NAME = "gemini-2.5-flash"
 
 client = genai.Client(
     api_key=api_key,
