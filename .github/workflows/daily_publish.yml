@@ -24,9 +24,9 @@ jobs:
         run: pip install google-genai
 
       - name: Tagesausgabe generieren
-        env:
-          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
-        run: python scripts/generate_edition.py
+    env:
+      GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+    run: python scripts/generate_edition.py
 
       - name: Neue Ausgabe speichern & veröffentlichen
         run: |
