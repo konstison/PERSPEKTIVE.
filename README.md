@@ -1,2 +1,0 @@
-# PERSPEKTIVE.
-Tageszeitung 
