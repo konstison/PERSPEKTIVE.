@@ -8,7 +8,6 @@ from datetime import datetime
 from google import genai
 from google.genai import types
 
-# Initialisierung mit direktem API-Key und Vertex-Modus
 api_key = os.environ.get("GEMINI_API_KEY")
 project_id = os.environ.get("GOOGLE_CLOUD_PROJECT", "53810350049")
 
@@ -33,13 +32,9 @@ def fetch_rss_headlines(limit_per_feed=15):
     items = []
     for feed in RSS_FEEDS:
         try:
-            req = urllib.request.Request(
-                feed["url"], 
-                headers={"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64)"}
-            )
+            req = urllib.request.Request(feed["url"], headers={"User-Agent": "Mozilla/5.0"})
             with urllib.request.urlopen(req, timeout=15) as resp:
                 xml_data = resp.read()
-            
             root = ET.fromstring(xml_data)
             entries = root.findall(".//item")
             if not entries:
@@ -74,11 +69,7 @@ def fetch_rss_headlines(limit_per_feed=15):
 def fetch_wikimedia_image(search_query):
     try:
         encoded = urllib.parse.quote(search_query)
-        api_url = (
-            f"https://commons.wikimedia.org/w/api.php?action=query&generator=search"
-            f"&gsrsearch=filetype:bitmap+{encoded}&gsrnamespace=6&gsrlimit=2"
-            f"&prop=imageinfo&iiprop=url|extmetadata&iiurlwidth=1280&format=json"
-        )
+        api_url = f"https://commons.wikimedia.org/w/api.php?action=query&generator=search&gsrsearch=filetype:bitmap+{encoded}&gsrnamespace=6&gsrlimit=1&prop=imageinfo&iiprop=url|extmetadata&iiurlwidth=1280&format=json"
         req = urllib.request.Request(api_url, headers={"User-Agent": "PerspektiveNewspaper/1.0"})
         with urllib.request.urlopen(req, timeout=10) as resp:
             data = json.loads(resp.read().decode("utf-8"))
@@ -86,41 +77,35 @@ def fetch_wikimedia_image(search_query):
         for page in pages.values():
             info = page.get("imageinfo", [{}])[0]
             thumb = info.get("thumburl")
-            meta = info.get("extmetadata", {})
-            license_short = meta.get("LicenseShortName", {}).get("value", "Wikimedia Commons")
             if thumb:
                 return {
                     "url": thumb,
                     "beschreibung": f"Dokumentaraufnahme zum Thema: {search_query}",
-                    "lizenz": f"Foto: Wikimedia Commons ({license_short})"
+                    "lizenz": "Foto: Wikimedia Commons"
                 }
     except Exception as e:
         print(f"Bildsuche-Fehler: {e}")
     return {
         "url": "https://upload.wikimedia.org/wikipedia/commons/thumb/c/cc/Abu_Dhabi_skyline_from_Marina_Mall.jpg/1280px-Abu_Dhabi_skyline_from_Marina_Mall.jpg",
         "beschreibung": "Archivaufnahme",
-        "lizenz": "Foto: Wikimedia Commons (CC BY-SA)"
+        "lizenz": "Foto: Wikimedia Commons"
     }
 
 def cluster_top_5_topics(rss_items):
     print("2. Wähle die 5 relevantesten DACH/Welt-Themen...")
     prompt = f"""
-    Du bist Chefredakteur einer anspruchsvollen deutschen Tageszeitung (Stil: NZZ / Die Zeit / FAZ).
-    Wähle exakt 5 herausragende Themen aus den folgenden Meldungen aus, die für den deutschsprachigen
-    Leseraum heute von höchster politischer, wirtschaftlicher oder gesellschaftlicher Bedeutung sind.
-
+    Du bist Chefredakteur einer anspruchsvollen deutschen Tageszeitung (Stil: NZZ / FAZ).
+    Wähle exakt 5 herausragende Themen aus den folgenden Meldungen aus.
     Liefere ein reines JSON-Array mit 5 Objekten:
     [
       {{
-        "rubrik": "z.B. Geopolitik & Europa / Wirtschaft & Ordnung / Staat & Gesellschaft",
-        "arbeitstitel": "Prägnanter Titel",
-        "bild_suchbegriff": "Englischer Wikimedia-Suchbegriff (z.B. Berlin Reichstag oder European Central Bank)",
-        "relevante_quellen_indizes": [0, 2, 5]
+        "rubrik": "Geopolitik & Europa",
+        "arbeitstitel": "Titel",
+        "bild_suchbegriff": "Berlin",
+        "relevante_quellen_indizes": [0, 1]
       }}
     ]
-
-    Meldungen:
-    {json.dumps(rss_items, ensure_ascii=False)}
+    Meldungen: {json.dumps(rss_items[:30], ensure_ascii=False)}
     """
     resp = client.models.generate_content(
         model=MODEL_NAME,
@@ -131,34 +116,21 @@ def cluster_top_5_topics(rss_items):
 
 def generate_deep_essay(topic, sources):
     essay_prompt = f"""
-    Schreibe einen extrem tiefgehenden, hocheloquenten und akademisch fundierten Langform-Essay
-    (Umfang: Mindestens 1.200 bis 1.600 Wörter) für eine deutsche Qualitätszeitung.
-    Thema: {topic['arbeitstitel']}
-
-    STIL-VORGABEN:
-    - Absolutes Verbot von flachen KI-Floskeln.
-    - Beginne mit einer szenischen, literarischen Beobachtung oder einem harten historischen Fakt.
-    - Gliedere den Text in 3 bis 4 ausführliche Kapitel mit römischen Überschriften (<h2>I. ...</h2>).
-    - Baue tiefe historische Bezüge ein (Vergleiche mit dem 19. oder 20. Jahrhundert).
-    - Definiere im Text mindestens 2 historische Anker im Format: <span class="history-anchor" onclick="showHistory('key1')">Begriff</span>.
-
-    Liefere die Antwort als valides JSON:
+    Schreibe einen hocheloquenten Langform-Essay (ca. 1000 Wörter) zum Thema: {topic['arbeitstitel']}
+    Liefere die Antwort als reines JSON:
     {{
-      "titel": "Klassische Doppelpunkt-Schlagzeile",
-      "untertitel": "Ausführlicher essayistischer Untertitel",
-      "leitthese": "Zentrale These in 2 Sätzen für die Randspalte.",
+      "titel": "Schlagzeile",
+      "untertitel": "Untertitel",
+      "leitthese": "Leitthese in 2 Sätzen.",
       "historische_anker": {{
-        "key1": {{"titel": "Historischer Titel", "text": "Ausführliche Erläuterung in 3 Sätzen."}},
-        "key2": {{"titel": "Zweiter Bezug", "text": "Ausführliche Erläuterung in 3 Sätzen."}}
+        "key1": {{"titel": "Historischer Bezug", "text": "Erläuterung in 3 Sätzen."}}
       }},
-      "inhalt_html": "<p>Vollständiger Text mit <p>, <h2>, <blockquote>...</p>",
+      "inhalt_html": "<p>Absatz 1...</p><h2>I. Kapitel</h2><p>Absatz 2...</p>",
       "weltspiegel": [
-        {{"medium": "Le Monde, Frankreich", "tenor": "Analytisch", "zusammenfassung": "Präzise 2-Satz-Zusammenfassung.", "url": "https://www.lemonde.fr"}}
+        {{"medium": "Le Monde", "tenor": "Analytisch", "zusammenfassung": "Zusammenfassung.", "url": "https://www.lemonde.fr"}}
       ]
     }}
-
-    Quellenbasis:
-    {json.dumps(sources, ensure_ascii=False)}
+    Quellen: {json.dumps(sources, ensure_ascii=False)}
     """
     resp = client.models.generate_content(
         model=MODEL_NAME,
@@ -170,28 +142,43 @@ def generate_deep_essay(topic, sources):
 def main():
     rss_items = fetch_rss_headlines()
     if not rss_items:
-        print("Keine RSS-Einträge gefunden.")
         return
-
     topics = cluster_top_5_topics(rss_items)
     time.sleep(2)
 
     fertige_artikel = []
     for idx, topic in enumerate(topics[:5], start=1):
-        print(f"Schreibe Essay {idx}/5: {topic['arbeitstitel']}...")
-        src_subset = [rss_items[i] for i in topic.get("relevante_quellen_indizes", []) if i < len(rss_items)]
+        print(f"Schreibe Essay {idx}/5...")
+        src_subset = [rss_items[i] for i in topic.get("relevante_quellen_indizes", [0]) if i < len(rss_items)]
         if not src_subset:
-            src_subset = rss_items[:3]
+            src_subset = rss_items[:2]
 
         essay_data = generate_deep_essay(topic, src_subset)
-        bild = fetch_wikimedia_image(topic.get("bild_suchbegriff", "Berlin Architecture"))
+        bild = fetch_wikimedia_image(topic.get("bild_suchbegriff", "Berlin"))
         
-        word_count = len(essay_data["inhalt_html"].split())
-        lesezeit = f"{max(12, round(word_count / 120))} Min. Lesezeit"
-
         fertige_artikel.append({
             "id": f"essay-{idx}",
-            "rubrik": topic["rubrik"],
-            "lesezeit": lesezeit,
-            "titel": essay_data["titel"],
-            "untertitel": essay_data["untertitel"],
+            "rubrik": topic.get("rubrik", "Zeitgeschehen"),
+            "lesezeit": "12 Min. Lesezeit",
+            "titel": essay_data.get("titel", topic["arbeitstitel"]),
+            "untertitel": essay_data.get("untertitel", ""),
+            "leitthese": essay_data.get("leitthese", ""),
+            "bild": bild,
+            "historische_anker": essay_data.get("historische_anker", {}),
+            "inhalt_html": essay_data.get("inhalt_html", "<p>Inhalt wird geladen...</p>"),
+            "weltspiegel": essay_data.get("weltspiegel", [])
+        })
+        time.sleep(2)
+
+    os.makedirs("data", exist_ok=True)
+    ausgabe = {
+        "datum": datetime.now().strftime("%A, %d. %B %Y").replace("Monday", "Montag").replace("Tuesday", "Dienstag").replace("Wednesday", "Mittwoch").replace("Thursday", "Donnerstag").replace("Friday", "Freitag").replace("Saturday", "Samstag").replace("Sunday", "Sonntag"),
+        "ausgabe_nr": "1",
+        "artikel": fertige_artikel
+    }
+    with open("data/ausgabe.json", "w", encoding="utf-8") as f:
+        json.dump(ausgabe, f, ensure_ascii=False, indent=2)
+    print("Fertig!")
+
+if __name__ == "__main__":
+    main()
