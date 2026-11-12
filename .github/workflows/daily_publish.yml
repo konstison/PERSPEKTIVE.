@@ -2,8 +2,8 @@ name: Tägliche Zeitungsausgabe generieren
 
 on:
   schedule:
-    - cron: '30 4 * * *' # 04:30 UTC = 05:30 Uhr MEZ (München/Berlin)
-  workflow_dispatch:      # Ermöglicht auch manuellen Start per Klick
+    - cron: '30 4 * * *'
+  workflow_dispatch:
 
 permissions:
   contents: write
@@ -21,13 +21,13 @@ jobs:
           python-version: '3.11'
 
       - name: Gemini SDK installieren
-        run: pip install google-genai
+        run: pip install --no-cache-dir google-genai
 
-  - name: Tagesausgabe generieren
+      - name: Tagesausgabe generieren
         env:
           GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
           GOOGLE_GENAI_USE_VERTEXAI: "true"
-          GOOGLE_CLOUD_PROJECT: "53810350049"  # Deine Projektnummer aus dem Screenshot
+          GOOGLE_CLOUD_PROJECT: "53810350049"
           GOOGLE_CLOUD_LOCATION: "us-central1"
         run: python scripts/generate_edition.py
 
