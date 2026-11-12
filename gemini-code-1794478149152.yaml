@@ -1,0 +1,37 @@
+name: Tägliche Zeitungsausgabe generieren
+
+on:
+  schedule:
+    - cron: '30 4 * * *' # 04:30 UTC = 05:30 Uhr MEZ (München/Berlin)
+  workflow_dispatch:      # Ermöglicht auch manuellen Start per Klick
+
+permissions:
+  contents: write
+
+jobs:
+  publish-edition:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Repository auschecken
+        uses: actions/checkout@v4
+
+      - name: Python einrichten
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Gemini SDK installieren
+        run: pip install google-genai
+
+      - name: Tagesausgabe generieren
+        env:
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+        run: python scripts/generate_edition.py
+
+      - name: Neue Ausgabe speichern & veröffentlichen
+        run: |
+          git config user.name "Perspektive Redaktions-Bot"
+          git config user.email "bot@perspektive-lesen.de"
+          git add data/ausgabe.json
+          git commit -m "Tagesausgabe aktualisiert" || exit 0
+          git push
