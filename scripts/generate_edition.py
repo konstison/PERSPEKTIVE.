@@ -8,9 +8,10 @@ from datetime import datetime
 from google import genai
 from google.genai import types
 
-# Initialisiert den kostenlosen Gemini-Client über die Umgebungsvariable GEMINI_API_KEY
+# Initialisierung für den Cloud-/Vertex-Schlüssel (erkennt GEMINI_API_KEY automatisch)
+# Falls Google Cloud aktiv ist, nutzen wir das Standard-Client-Setup:
 client = genai.Client()
-MODEL_NAME = "gemini-2.5-flash"  # Im Google AI Studio Free Tier kostenlos nutzbar
+MODEL_NAME = "gemini-2.5-flash"
 
 RSS_FEEDS = [
     {"name": "Tagesschau", "land": "Deutschland", "url": "https://www.tagesschau.de/xml/rss2/"},
