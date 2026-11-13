@@ -111,6 +111,13 @@
       border-bottom: 1px solid var(--border-hairline);
       gap: 1rem;
       flex-wrap: wrap;
+      <!-- Im Masthead-Meta-Bereich der index.html ergänzen: -->
+<div style="display: flex; gap: 1rem; align-items: center;">
+  <span id="editionDate">Lade Ausgabe...</span>
+  <select id="archiveSelect" onchange="loadArchiveEdition(this.value)" class="theme-toggle" style="padding: 0.2rem 0.5rem; cursor: pointer;">
+    <option value="">Heutige Ausgabe</option>
+  </select>
+</div>
     }
     .theme-toggle {
       background: transparent;
