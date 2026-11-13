@@ -126,21 +126,31 @@ def cluster_top_5_topics(rss_items):
 
 def generate_deep_essay(topic, sources):
     essay_prompt = f"""
-    Schreibe einen hocheloquenten Langform-Essay (ca. 900 Wörter) zum Thema: {topic['arbeitstitel']}
+    Du bist ein erfahrener, nüchterner Leitartikler einer europäischen Qualitätszeitung (Stil: NZZ / FAZ). 
+    Schreibe einen tiefgründigen, glasklaren und sachlich fundierten Essay (ca. 1.400 bis 1.600 Wörter, damit der Text genügend Raum für Argumente hat und nicht überladen wirkt).
+    Thema: {topic['arbeitstitel']}
+
+    STIL- UND INHALTSVORGABEN:
+    - Absolute Sachlichkeit: Vermeide jede Form von pathetischem Pathos, aufgesetzten Metaphern-Kaskaden oder reißerischem Fachjargon. Schreibe elegant, präzise und intellektuell greifbar.
+    - Faktentreue: Halte dich strikt an die beiliegenden Quellen und historischen Tatsachen (keine erfundenen politischen Rollen oder veränderten Biografien).
+    - Aufbau: Gliedere den Text in 4 ausführliche, inhaltlich saubere Kapitel mit klassischen römischen Überschriften (<h2>I. ...</h2>).
+    - Historische Einbettung: Verorte das aktuelle Geschehen in einem echten historischen oder strukturpolitischen Kontext.
+    - Definiere im Text genau 2 historische oder begriffliche Anker im Format: <span class="history-anchor" onclick="showHistory('key1')">Begriff</span>.
+
     Liefere die Antwort als reines JSON:
     {{
-      "titel": "Schlagzeile",
-      "untertitel": "Untertitel",
-      "leitthese": "Leitthese in 2 Sätzen.",
+      "titel": "Klassische Doppelpunkt-Schlagzeile",
+      "untertitel": "Ausführlicher, sachlicher Untertitel",
+      "leitthese": "Zentrale These in 2 prägnanten Sätzen für die Randspalte.",
       "historische_anker": {{
-        "key1": {{"titel": "Bezug", "text": "Erläuterung."}}
+        "key1": {{"titel": "Historischer Bezug", "text": "Sachliche, präzise Erläuterung in 3 Sätzen."}}
       }},
-      "inhalt_html": "<p>Absatz...</p><h2>I. Kapitel</h2><p>Absatz...</p>",
+      "inhalt_html": "<p>Vollständiger Text mit <p>, <h2>, <blockquote>...</p>",
       "weltspiegel": [
-        {{"medium": "Le Monde", "tenor": "Analytisch", "zusammenfassung": "Zusammenfassung.", "url": "https://www.lemonde.fr"}}
+        {{"medium": "Le Monde, Frankreich", "tenor": "Analytisch", "zusammenfassung": "Präzise Zusammenfassung der Haltung des Mediums.", "url": "https://www.lemonde.fr"}}
       ]
     }}
-    Quellen: {json.dumps(sources, ensure_ascii=False)}
+    Quellenbasis: {json.dumps(sources, ensure_ascii=False)}
     """
     resp = call_gemini_safe(
         essay_prompt,
