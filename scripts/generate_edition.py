@@ -7,7 +7,7 @@ import xml.etree.ElementTree as ET
 from datetime import datetime
 from google import genai
 
-# Standard-Initialisierung für den AI-Studio-Schlüssel (AIza...)
+# Das SDK greift automatisch auf die Umgebungsvariable GEMINI_API_KEY zu
 client = genai.Client()
 MODEL_NAME = "gemini-2.5-flash"
 
