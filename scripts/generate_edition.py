@@ -8,9 +8,9 @@ from datetime import datetime
 from google import genai
 from google.genai import types
 
-# Das SDK greift automatisch auf die Umgebungsvariable GEMINI_API_KEY zu
+# Das SDK greift automatisch auf deinen GEMINI_API_KEY zu
 client = genai.Client()
-MODEL_NAME = "gemini-2.5-flash"
+MODEL_NAME = "gemini-3.8-flash"  # Aktualisiert auf das neue, stabile Modell
 
 RSS_FEEDS = [
     {"name": "Tagesschau", "land": "Deutschland", "url": "https://www.tagesschau.de/xml/rss2/"},
