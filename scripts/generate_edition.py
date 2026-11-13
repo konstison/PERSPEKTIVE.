@@ -9,27 +9,35 @@ from google import genai
 from google.genai import types
 
 client = genai.Client()
-# Wechsel auf ein stabiles, weniger überlastetes Produktionsmodell
-MODEL_NAME = "gemini-1.5-flash"
 
-def call_gemini_with_retry(prompt, config=None, max_retries=4):
-    """Führt den API-Aufruf aus und fängt 503/High-Demand-Fehler mit Wartezeit ab."""
-    for attempt in range(1, max_retries + 1):
-        try:
-            if config:
-                return client.models.generate_content(model=MODEL_NAME, contents=prompt, config=config)
-            else:
-                return client.models.generate_content(model=MODEL_NAME, contents=prompt)
-        except Exception as e:
-            print(f"API-Hinweis (Versuch {attempt}/{max_retries}): {e}")
-            if "503" in str(e) or "UNAVAILABLE" in str(e) or "high demand" in str(e) or "overloaded" in str(e):
-                if attempt < max_retries:
-                    wait_time = attempt * 12  # 12s, 24s, 36s warten
-                    print(f"Server ausgelastet. Warte {wait_time} Sekunden vor dem nächsten Versuch...")
-                    time.sleep(wait_time)
+# Priorisierte Modell-Liste: Weicht bei 503-Überlastung sofort auf das nächste Modell aus
+MODELS = [
+    "gemini-3.8-flash",
+    "gemini-3.8-flash-lite",
+    "gemini-3.5-flash",
+    "gemini-3.0-flash"
+]
+
+def call_gemini_smart(prompt, config=None):
+    """Probiert die Modell-Liste durch und fängt Überlastungen (503) oder alte Endpunkte (404) ab."""
+    for model_name in MODELS:
+        for attempt in range(1, 3):  # Pro Modell max. 2 Versuche
+            try:
+                if config:
+                    return client.models.generate_content(model=model_name, contents=prompt, config=config)
+                else:
+                    return client.models.generate_content(model=model_name, contents=prompt)
+            except Exception as e:
+                err_str = str(e)
+                print(f"Hinweis bei {model_name} (Versuch {attempt}): {err_str[:120]}...")
+                if "404" in err_str or "NOT_FOUND" in err_str:
+                    # Modell existiert nicht mehr -> sofort nächstes Modell nehmen
+                    break
+                if "503" in err_str or "429" in err_str or "UNAVAILABLE" in err_str or "high demand" in err_str:
+                    time.sleep(5)
                     continue
-            raise e
-    raise Exception("Maximalzahl an Wiederholungen wegen Server-Auslastung erreicht.")
+                raise e
+    raise Exception("Alle Ausweich-Modelle sind aktuell überlastet.")
 
 RSS_FEEDS = [
     {"name": "Tagesschau", "land": "Deutschland", "url": "https://www.tagesschau.de/xml/rss2/"},
@@ -39,7 +47,7 @@ RSS_FEEDS = [
     {"name": "FAZ Aktuell", "land": "Deutschland", "url": "https://www.faz.net/rss/aktuell/"}
 ]
 
-def fetch_rss_headlines(limit_per_feed=15):
+def fetch_rss_headlines(limit_per_feed=10):
     print("1. Lese offene RSS-Feeds...")
     items = []
     for feed in RSS_FEEDS:
@@ -70,7 +78,7 @@ def fetch_rss_headlines(limit_per_feed=15):
                         "medium": feed["name"],
                         "land": feed["land"],
                         "titel": title,
-                        "kurztext": desc[:400],
+                        "kurztext": desc[:250],
                         "url": link.strip()
                     })
         except Exception as e:
@@ -119,9 +127,9 @@ def cluster_top_5_topics(rss_items):
         "relevante_quellen_indizes": [0, 1]
       }}
     ]
-    Meldungen: {json.dumps(rss_items[:35], ensure_ascii=False)}
+    Meldungen: {json.dumps(rss_items[:20], ensure_ascii=False)}
     """
-    resp = call_gemini_with_retry(
+    resp = call_gemini_smart(
         prompt, 
         config=types.GenerateContentConfig(response_mime_type="application/json")
     )
@@ -154,7 +162,7 @@ def generate_deep_essay(topic, sources):
     }}
     Quellenbasis: {json.dumps(sources, ensure_ascii=False)}
     """
-    resp = call_gemini_with_retry(
+    resp = call_gemini_smart(
         essay_prompt,
         config=types.GenerateContentConfig(response_mime_type="application/json")
     )
@@ -167,7 +175,7 @@ def main():
         return
         
     topics = cluster_top_5_topics(rss_items)
-    time.sleep(3)
+    time.sleep(2)
 
     fertige_artikel = []
     for idx, topic in enumerate(topics[:5], start=1):
@@ -191,7 +199,7 @@ def main():
             "inhalt_html": essay_data.get("inhalt_html", "<p>Inhalt wird geladen...</p>"),
             "weltspiegel": essay_data.get("weltspiegel", [])
         })
-        time.sleep(3)
+        time.sleep(2)
 
     os.makedirs("data", exist_ok=True)
     ausgabe = {
