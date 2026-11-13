@@ -23,9 +23,12 @@ jobs:
       - name: Gemini SDK installieren
         run: pip install --no-cache-dir google-genai
 
- - name: Tagesausgabe generieren
+      - name: Tagesausgabe generieren
         env:
           GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+          GOOGLE_GENAI_USE_VERTEXAI: "true"
+          GOOGLE_CLOUD_PROJECT: "53810350049"
+          GOOGLE_CLOUD_LOCATION: "us-central1"
         run: python scripts/generate_edition.py
 
       - name: Neue Ausgabe speichern & veröffentlichen
