@@ -5,14 +5,14 @@
   <link rel="manifest" href="./manifest.json">
   <link rel="icon" type="image/svg+xml" href="./icon.svg">
   <link rel="apple-touch-icon" href="./icon.svg">
-  <meta name="theme-color" content="#141413">
+  <meta name="theme-color" content="#1A1917">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-  <meta name="apple-mobile-web-app-title" content="PERSPEKTIVE.">
+  <meta name="apple-mobile-web-app-title" content="Der Korrespondent">
   
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>PERSPEKTIVE — Tagesblatt für Analyse, Geschichte & Weltspiegel</title>
+  <title>Der Korrespondent — Tagesblatt für Analyse, Geschichte & Weltspiegel</title>
   
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -112,7 +112,7 @@
       gap: 1rem;
       flex-wrap: wrap;
     }
-    .theme-toggle {
+    .theme-toggle, .archive-select {
       background: transparent;
       border: 1px solid var(--border-hairline);
       color: var(--ink-primary);
@@ -124,7 +124,8 @@
       letter-spacing: 0.04em;
       transition: all 0.2s;
     }
-    .theme-toggle:hover { border-color: var(--accent); color: var(--accent); }
+    .theme-toggle:hover, .archive-select:hover { border-color: var(--accent); color: var(--accent); }
+    .archive-select { background: var(--bg-paper); }
 
     .masthead-title-wrap {
       text-align: center;
@@ -141,9 +142,9 @@
     }
     h1.paper-name {
       font-family: var(--font-display);
-      font-size: clamp(2.8rem, 6vw, 4.6rem);
+      font-size: clamp(2.4rem, 5vw, 4rem);
       font-weight: 700;
-      letter-spacing: 0.14em;
+      letter-spacing: 0.08em;
       line-height: 1;
       text-transform: uppercase;
     }
@@ -265,7 +266,7 @@
       line-height: 1.5;
     }
 
-    /* Bild-Figur mit automatischem Wikimedia/CC-Nachweis */
+    /* Bild-Figur */
     figure.hero-figure {
       margin: 0 0 2.2rem;
       background: var(--bg-card);
@@ -330,7 +331,7 @@
       color: var(--ink-secondary);
     }
 
-    /* Historischer Resonanz-Anker (Klickbare Zeitkapsel) */
+    /* Historischer Resonanz-Anker */
     .history-anchor {
       border-bottom: 1.5px dotted var(--accent);
       background: var(--accent-soft);
@@ -340,7 +341,7 @@
     }
     .history-anchor:hover { background: rgba(139, 38, 29, 0.22); }
 
-    /* Marginalien-Karten (Flair-Element rechts) */
+    /* Marginalien-Karten */
     .margin-card {
       border-top: 2px solid var(--border-strong);
       padding-top: 0.8rem;
@@ -370,7 +371,7 @@
       color: var(--ink-secondary);
     }
 
-    /* Weltspiegel (Presseschau) */
+    /* Weltspiegel */
     section.weltspiegel {
       margin-top: 3.5rem;
       padding: 2rem;
@@ -427,121 +428,40 @@
     }
     .press-link:hover { border-color: var(--accent); color: var(--accent); }
 
-    <!-- Kolophon & Impressum-Footer -->
-  <footer class="colophon">
-    <div style="max-width: 640px;">
-      <strong>Methodik & Transparenzhinweis:</strong> Alle Beiträge dieser Ausgabe werden auf Basis öffentlich zugänglicher Nachrichtenquellen und amtlicher Dokumente automatisiert recherchiert, historisch kontextualisiert und KI-gestützt verfasst. Im <em>Weltspiegel</em> werden Positionen internationaler Leitmedien eigenständig zusammengefasst und auf die Originalbeiträge verlinkt.
-    </div>
-    <div style="display: flex; flex-direction: column; align-items: flex-end; gap: 0.3rem;">
-      <span><strong>DER KORRESPONDENT</strong> · München</span>
-      <a href="javascript:void(0)" onclick="openLegalModal()" style="color: var(--ink-secondary); text-decoration: underline; cursor: pointer;">Impressum & Datenschutz</a>
-    </div>
-  </footer>
-
-  <!-- Impressum & Datenschutz Modal-Overlay -->
-  <div id="legalModal" style="display:none; position:fixed; top:0; left:0; right:0; bottom:0; background:rgba(0,0,0,0.6); z-index:1000; justify-content:center; align-items:center; padding:1.5rem;">
-    <div style="background:var(--bg-paper); color:var(--ink-primary); max-width:600px; width:100%; max-height:85vh; overflow-y:auto; padding:2.5rem; border:2px solid var(--border-strong); position:relative; font-family:var(--font-ui); font-size:0.85rem; line-height:1.6;">
-      <button onclick="closeLegalModal()" style="position:absolute; top:1rem; right:1rem; background:none; border:none; font-size:1.2rem; cursor:pointer; color:var(--ink-primary);">✕</button>
-      
-      <h2 style="font-family:var(--font-display); font-size:1.8rem; margin-bottom:1rem;">Impressum & Rechtliches</h2>
-      <p style="margin-bottom:1rem;"><strong>Angaben gemäß § 5 DDG / TMG:</strong><br>
-      Konstantin Peucker<br>
-      München<br>
-      E-Mail: [Deine E-Mail-Adresse]</p>
-
-      <h3 style="font-family:var(--font-display); font-size:1.3rem; margin:1.5rem 0 0.5rem;">Haftung für Inhalte & Links</h3>
-      <p style="margin-bottom:1rem;">Als Diensteanbieter sind wir für eigene Inhalte auf diesen Seiten nach den allgemeinen Gesetzen verantwortlich. Für Inhalte externer Links (im Bereich <em>Weltspiegel</em>) übernehmen wir keine Gewähr; für den Inhalt der verlinkten Seiten sind ausschließlich deren Betreiber verantwortlich.</p>
-
-      <h3 style="font-family:var(--font-display); font-size:1.3rem; margin:1.5rem 0 0.5rem;">Datenschutz</h3>
-      <p style="margin-bottom:1rem;">Da diese Website über GitHub Pages gehostet wird, erfolgt die Bereitstellung rein statisch. Es werden keine Tracking-Cookies, Analysetools oder personenbezogenen Datenbanken unsererseits eingesetzt. Beim Aufruf der Seite erfasst GitHub Server-Logfiles (wie z. B. anonymisierte IP-Adressen) im Rahmen der üblichen Hosting-Sicherheit.</p>
-
-      <div style="margin-top:2rem; text-align:right;">
-        <button onclick="closeLegalModal()" class="theme-toggle" style="padding:0.5rem 1rem;">Schließen</button>
-      </div>
-    </div>
-  </div>
-
-  <script>
-    function openLegalModal() { document.getElementById('legalModal').style.display = 'flex'; }
-    function closeLegalModal() { document.getElementById('legalModal').style.display = 'none'; }
-  </script>
+    /* Footer & Kolophon */
+    footer.colophon {
+      max-width: 1140px;
+      margin: 0 auto;
+      padding: 2rem 1.5rem 3.5rem;
+      border-top: 2px solid var(--border-strong);
+      font-family: var(--font-ui);
+      font-size: 0.78rem;
+      color: var(--ink-muted);
+      display: flex;
+      justify-content: space-between;
+      gap: 2rem;
+      flex-wrap: wrap;
     }
 
-    /* =========================================================
-       MOBILE OPTIMIERUNG (Nur für Smartphones bis 768px Breite)
-       Desktop-Ansicht bleibt zu 100 % unverändert!
-       ========================================================= */
+    /* Mobile Optimierung */
     @media (max-width: 768px) {
-      header.masthead {
-        padding: 1rem 1rem 0.85rem !important;
-      }
-      .masthead-meta {
-        font-size: 0.68rem !important;
-        gap: 0.5rem !important;
-        padding-bottom: 0.6rem !important;
-      }
-      .masthead-title-wrap {
-        padding: 1rem 0 0.8rem !important;
-      }
-      h1.paper-name {
-        font-size: 2.6rem !important;
-        letter-spacing: 0.08em !important;
-      }
-      .paper-motto {
-        font-size: 0.9rem !important;
-      }
-
-      nav.edition-nav {
-        padding: 0.6rem 1rem !important;
-        grid-template-columns: 1fr !important;
-        gap: 0.5rem !important;
-      }
-      .nav-card {
-        padding: 0.45rem 0.6rem !important;
-      }
-
-      main.article-shell {
-        padding: 1.5rem 1rem 3rem !important;
-        gap: 1.5rem !important;
-      }
-      .article-header {
-        margin-bottom: 1.5rem !important;
-        padding-bottom: 1rem !important;
-      }
-      .article-headline {
-        font-size: 1.85rem !important;
-        line-height: 1.18 !important;
-        margin-bottom: 0.75rem !important;
-      }
-      .article-subhead {
-        font-size: 1.05rem !important;
-        line-height: 1.45 !important;
-      }
-
-      .essay-body {
-        font-size: 1.05rem !important;
-      }
-      .essay-body p {
-        margin-bottom: 1.2rem !important;
-      }
-      .essay-body h2 {
-        font-size: 1.4rem !important;
-        margin: 2rem 0 0.8rem !important;
-        padding-top: 0.9rem !important;
-      }
-      .essay-body blockquote {
-        margin: 1.4rem 0 !important;
-        padding: 0.8rem 1rem !important;
-        font-size: 1.05rem !important;
-      }
-
-      section.weltspiegel {
-        margin-top: 2.5rem !important;
-        padding: 1.2rem !important;
-      }
-      .weltspiegel-grid {
-        grid-template-columns: 1fr !important;
-      }
+      header.masthead { padding: 1rem 1rem 0.85rem !important; }
+      .masthead-meta { font-size: 0.68rem !important; gap: 0.5rem !important; padding-bottom: 0.6rem !important; }
+      .masthead-title-wrap { padding: 1.0rem 0 0.8rem !important; }
+      h1.paper-name { font-size: 2.2rem !important; letter-spacing: 0.06em !important; }
+      .paper-motto { font-size: 0.85rem !important; }
+      nav.edition-nav { padding: 0.6rem 1rem !important; grid-template-columns: 1fr !important; gap: 0.5rem !important; }
+      .nav-card { padding: 0.45rem 0.6rem !important; }
+      main.article-shell { padding: 1.5rem 1rem 3rem !important; gap: 1.5rem !important; }
+      .article-header { margin-bottom: 1.5rem !important; padding-bottom: 1rem !important; }
+      .article-headline { font-size: 1.85rem !important; line-height: 1.18 !important; margin-bottom: 0.75rem !important; }
+      .article-subhead { font-size: 1.05rem !important; line-height: 1.45 !important; }
+      .essay-body { font-size: 1.05rem !important; }
+      .essay-body p { margin-bottom: 1.2rem !important; }
+      .essay-body h2 { font-size: 1.4rem !important; margin: 2rem 0 0.8rem !important; padding-top: 0.9rem !important; }
+      .essay-body blockquote { margin: 1.4rem 0 !important; padding: 0.8rem 1rem !important; font-size: 1.05rem !important; }
+      section.weltspiegel { margin-top: 2.5rem !important; padding: 1.2rem !important; }
+      .weltspiegel-grid { grid-template-columns: 1fr !important; }
     }
   </style>
 </head>
@@ -549,22 +469,28 @@
 
   <!-- Schwebender Kapitel-Kompass -->
   <div class="reading-ribbon" id="readingRibbon">
-    <span id="ribbonTitle" style="font-weight:500; color:var(--ink-secondary);">PERSPEKTIVE</span>
+    <span id="ribbonTitle" style="font-weight:500; color:var(--ink-secondary);">DER KORRESPONDENT</span>
     <span class="ribbon-chapter" id="ribbonChapter">I. Auftakt</span>
-    <span id="ribbonTime" style="color:var(--ink-muted);">15 Min. Lesezeit</span>
+    <span id="ribbonTime" style="color:var(--ink-muted);">14 Min. Lesezeit</span>
     <div class="ribbon-progress" id="ribbonProgress"></div>
   </div>
 
   <!-- Zeitungskopf -->
   <header class="masthead">
     <div class="masthead-meta">
-      <span id="editionDate">Donnerstag, 12. November 2026 · Ausgabe Nr. 316</span>
+      <div style="display: flex; gap: 1rem; align-items: center; flex-wrap: wrap;">
+        <span id="editionDate">Lade Ausgabe...</span>
+        <!-- ARCHIV DROPDOWN MENÜ -->
+        <select id="archiveSelect" class="archive-select" onchange="loadArchiveEdition(this.value)">
+          <option value="">Heutige Ausgabe</option>
+        </select>
+      </div>
       <span>Deutschland · Europa · Weltspiegel</span>
       <button class="theme-toggle" id="themeToggle" onclick="toggleTheme()">Abendblatt-Modus</button>
     </div>
     <div class="masthead-title-wrap">
       <div class="masthead-kicker">Fünf Essays zur Lage der Gegenwart</div>
-      <h1 class="paper-name">Perspektive</h1>
+      <h1 class="paper-name">Der Korrespondent</h1>
       <p class="paper-motto">Analytischer Journalismus aus offenen Quellen — historisch geerdet, europäisch gedacht.</p>
     </div>
   </header>
@@ -592,78 +518,77 @@
     </aside>
   </main>
 
-  <!-- Kolophon & KI-Transparenzhinweis (EU AI Act Art. 50) -->
+  <!-- Kolophon & Impressum-Footer -->
   <footer class="colophon">
     <div style="max-width: 640px;">
       <strong>Methodik & Transparenzhinweis:</strong> Alle Beiträge dieser Ausgabe werden auf Basis öffentlich zugänglicher Nachrichtenquellen und amtlicher Dokumente automatisiert recherchiert, historisch kontextualisiert und KI-gestützt verfasst. Im <em>Weltspiegel</em> werden Positionen internationaler Leitmedien eigenständig zusammengefasst und auf die Originalbeiträge verlinkt.
     </div>
-    <div>
-      <strong>PERSPEKTIVE</strong> · München & Berlin<br />
-      Redaktionelle Synthese · Offene Quellen
+    <div style="display: flex; flex-direction: column; align-items: flex-end; gap: 0.3rem;">
+      <span><strong>DER KORRESPONDENT</strong> · München</span>
+      <a href="javascript:void(0)" onclick="openLegalModal()" style="color: var(--ink-secondary); text-decoration: underline; cursor: pointer;">Impressum & Datenschutz</a>
     </div>
   </footer>
 
+  <!-- Impressum & Datenschutz Modal-Overlay -->
+  <div id="legalModal" style="display:none; position:fixed; top:0; left:0; right:0; bottom:0; background:rgba(0,0,0,0.6); z-index:1000; justify-content:center; align-items:center; padding:1.5rem;">
+    <div style="background:var(--bg-paper); color:var(--ink-primary); max-width:600px; width:100%; max-height:85vh; overflow-y:auto; padding:2.5rem; border:2px solid var(--border-strong); position:relative; font-family:var(--font-ui); font-size:0.85rem; line-height:1.6;">
+      <button onclick="closeLegalModal()" style="position:absolute; top:1rem; right:1rem; background:none; border:none; font-size:1.2rem; cursor:pointer; color:var(--ink-primary);">✕</button>
+      
+      <h2 style="font-family:var(--font-display); font-size:1.8rem; margin-bottom:1rem;">Impressum & Rechtliches</h2>
+      <p style="margin-bottom:1rem;"><strong>Angaben gemäß § 5 DDG / TMG:</strong><br>
+      Konstantin Peucker<br>
+      München<br>
+      E-Mail: [Deine E-Mail-Adresse]</p>
+
+      <h3 style="font-family:var(--font-display); font-size:1.3rem; margin:1.5rem 0 0.5rem;">Haftung für Inhalte & Links</h3>
+      <p style="margin-bottom:1rem;">Als Diensteanbieter sind wir für eigene Inhalte auf diesen Seiten nach den allgemeinen Gesetzen verantwortlich. Für Inhalte externer Links (im Bereich <em>Weltspiegel</em>) übernehmen wir keine Gewähr; für den Inhalt der verlinkten Seiten sind ausschließlich deren Betreiber verantwortlich.</p>
+
+      <h3 style="font-family:var(--font-display); font-size:1.3rem; margin:1.5rem 0 0.5rem;">Datenschutz</h3>
+      <p style="margin-bottom:1rem;">Da diese Website über GitHub Pages gehostet wird, erfolgt die Bereitstellung rein statisch. Es werden keine Tracking-Cookies, Analysetools oder personenbezogenen Datenbanken unsererseits eingesetzt. Beim Aufruf der Seite erfasst GitHub Server-Logfiles im Rahmen der üblichen Hosting-Sicherheit.</p>
+
+      <div style="margin-top:2rem; text-align:right;">
+        <button onclick="closeLegalModal()" class="theme-toggle" style="padding:0.5rem 1rem;">Schließen</button>
+      </div>
+    </div>
+  </div>
+
   <script>
     const FALLBACK_EDITION = {
-      datum: "Donnerstag, 12. November 2026",
-      ausgabe_nr: "316",
+      datum: "Freitag, 13. November 2026",
+      ausgabe_nr: "317",
       artikel: [
         {
-          id: "abu-dhabi-architektur",
-          rubrik: "Geopolitik & Europa",
-          lesezeit: "16 Min. Lesezeit",
-          titel: "Geometrie der Asymmetrie: Warum die Diplomatie von Abu Dhabi den Krieg verwaltet, aber nicht beendet",
-          untertitel: "Von der humanitären Geste zum strategischen Vakuum – was die Verhandlungen am Persischen Golf über die neue Weltordnung und Europas Abwesenheit verraten.",
-          leitthese: "Solange Moskau territorialen Raumgewinn als Vorbedingung für Sicherheitsgarantien setzt und Europa nicht als geschlossener Akteur am Tisch sitzt, bleibt Diplomatie bloße Konfliktverwaltung.",
+          id: "der-korrespondent-intro",
+          rubrik: "Zeitgeschehen",
+          lesezeit: "14 Min. Lesezeit",
+          titel: "Der Korrespondent: Die Architektonik des Wandels in einer vernetzten Welt",
+          untertitel: "Ein Blick auf die Mechanismen hinter moderner Synthese, datengetriebener Publizistik und historischer Einordnung.",
+          leitthese: "Wer offene Quellen präzise verdichtet, schafft einen verlässlichen Kompass jenseits tagesaktueller Aufregung.",
           bild: {
             url: "https://upload.wikimedia.org/wikipedia/commons/thumb/c/cc/Abu_Dhabi_skyline_from_Marina_Mall.jpg/1280px-Abu_Dhabi_skyline_from_Marina_Mall.jpg",
-            beschreibung: "Skyline von Abu Dhabi: Neutraler Schauplatz einer transaktionalen Pendeldiplomatie.",
+            beschreibung: "Archivaufnahme zur modernen Stadt- und Systemarchitektur.",
             lizenz: "Foto: Wikimedia Commons (CC BY-SA)"
           },
           historische_anker: {
-            "jalta": {
-              titel: "Konferenz von Jalta (Februar 1945)",
-              text: "Als Roosevelt, Churchill und Stalin auf der Krim die Nachkriegsordnung in Einflusssphären aufteilten, geschah dies über die Köpfe der betroffenen Staaten hinweg. Moskaus heutiger Ruf nach einem 'neuen Jalta' zielt exakt auf diese Rückkehr zu Großmacht-Zonen."
-            },
-            "westfaelisch": {
-              titel: "Westfälischer Frieden (1648)",
-              text: "Begründete das Prinzip der souveränen Gleichheit von Staaten unabhängig von ihrer militärischen Größe – genau jene Norm, die durch transaktionale Großmacht-Deals unter Druck gerät."
+            "enzyklopaedie": {
+              titel: "Aufklärung & Enzyklopädisten",
+              text: "Das Bestreben, Wissen systematisch zu ordnen und zugänglich zu machen, bildet das Fundament jeder aufgeklärten Öffentlichkeit."
             }
           },
           inhalt_html: `
-            <p>Wenn Diplomatie in der Wüste stattfindet, liegt die Metapher der Fata Morgana nahe. Doch was sich in den klimatisierten Konferenzräumen von Abu Dhabi vollzog, war keine optische Täuschung, sondern die nüchterne Vermessung einer tektonischen Verschiebung. Erstmals saßen Delegationen Russlands und der Ukraine unter der Ägide der Vereinigten Staaten wieder an einem gemeinsamen Tisch. Das greifbare Resultat der Gespräche – ein großangelegter Austausch von Kriegsgefangenen – ist humanitär bedeutsam. Politisch jedoch markiert es weniger den Beginn eines Friedens als vielmehr die Institutionalisierung eines tiefgreifenden Dissenses.</p>
-
-            <h2>I. Die Epistemologie des Waffenstillstands</h2>
-            <p>Um die Architektur dieser Gespräche zu verstehen, lohnt ein Blick auf die Sitzordnung und die Protagonisten. An der Stirnseite agierten amerikanische Emissäre einer Administration, die internationale Krisen primär als transaktionales Verhandlungsproblem begreift. Ihnen gegenüber stand auf ukrainischer Seite ein pragmatisch-sicherheitspolitisch geprägtes Team, auf russischer Seite hingegen Wladimir Medinski – ein Ideologe des Kremls, der weniger zum Kompromiss als zur geschichtspolitischen Belehrung angereist war.</p>
-            <p>Der Kernkonflikt entzündete sich nicht einmal primär an den technischen Details einer Demarkationslinie, sondern an der Reihenfolge, in der politische Realität hergestellt werden soll. Kiew beharrt auf der klassischen Logik der Konflikteindämmung: Erst müssen die Waffen schweigen und belastbare Sicherheitsgarantien greifen, bevor über den politischen Status besetzter Gebiete gesprochen werden kann. Moskau hingegen kehrt diese Kausalität um. Mit dem expliziten Verweis auf ein <span class="history-anchor" onclick="showHistory('jalta')">neues Jalta und Potsdam</span> fordert Russland eine vollständige Revision der europäischen Sicherheitsarchitektur noch vor jedem Einfrieren der Frontlinien.</p>
-            <blockquote>„Die Ukraine ist für die Verhandlungsführung des Kremls nicht der eigentliche Gegenstand, sondern der Hebel zur Neuordnung Europas.“</blockquote>
-
-            <h2>II. Historische Linien: Rückkehr der Einflusssphären</h2>
-            <p>Wer diese Dynamik allein aus den Schlagzeilen der letzten Wochen erklärt, übersieht ihre tiefe historische Wurzel. Seit dem Ende des Kalten Krieges basierte die europäische Friedensordnung – kodifiziert in der Charta von Paris 1990 – auf der Überwindung von Einflusssphären und dem <span class="history-anchor" onclick="showHistory('westfaelisch')">westfälischen Prinzip</span> souveräner Bündnisfreiheit. Genau dieses Fundament stellt Moskau seit 2008 in Georgien, seit 2014 auf der Krim und seit 2022 im großen Maßstab infrage.</p>
-            <p>Dass Abu Dhabi als Verhandlungsort gewählt wurde, ist dabei kein Zufall. Die Golfstaaten haben sich in den vergangenen Jahren als post-westliche Drehscheiben etabliert: wirtschaftlich verflochten mit Washington und Brüssel, zugleich sanktionsfrei offen für Moskau und Peking. Diese neue Geografie der Diplomatie zeigt, dass der globale Süden längst nicht mehr nur Zuschauer europäischer Krisen ist, sondern deren logistische Bühne bereitstellt.</p>
-
-            <h2>III. Die deutsche und europäische Perspektive</h2>
-            <p>Für Berlin und Brüssel offenbart Abu Dhabi ein strukturelles Dilemma. Während über die künftige Statik des Kontinents debattiert wird, sitzen die europäischen Hauptstädte nicht mit am Haupttisch. Solange Europa zwar als finanzieller Garant für den künftigen Wiederaufbau und als Adressat russischer Sicherheitsforderungen eingeplant ist, aber außenpolitisch nicht als geschlossener Akteur auftritt, bleibt seine strategische Souveränität ein bloßes Postulat.</p>
-            <p>Für die deutsche Außenpolitik bedeutet dies eine unbequeme Wahrheit: Scheckbuchdiplomatie ersetzt keinen sicherheitspolitischen Hebel. Wer nicht als bloße Verhandlungsmasse zwischen Washington und Moskau zerrieben werden will, muss eigene Abschreckungs- und Handlungsfähigkeiten so schnell aufbauen, dass kein Abkommen über Europa ohne Europa geschlossen werden kann.</p>
+            <p>In einer von schnellen Informationsströmen geprägten Medienlandschaft gewinnt die strukturierte Einordnung an Gewicht. Es geht nicht mehr primär um das bloße Aufählen von Fakten, sondern um deren intellektuelle Durchdringung.</p>
+            <h2>I. Das Bedürfnis nach Synthese</h2>
+            <p>Die <span class="history-anchor" onclick="showHistory('enzyklopaedie')">enzyklopädische Tradition</span> lehrt uns, dass Komplexität durch klare Kategorisierung beherrschbar wird. Moderne Analyseparadigmen setzen genau an diesem Punkt an.</p>
+            <blockquote>„Tiefe entsteht nicht durch das Volumen der Information, sondern durch die Güte ihrer Filterung.“</blockquote>
+            <h2>II. Ausblick</h2>
+            <p>Die Zukunft des Journalismus im Gewand von <em>Der Korrespondent</em> liegt in der Verbindung aus technologischer Effizienz und kompromissloser redaktioneller Sorgfalt.</p>
           `,
           weltspiegel: [
             {
-              medium: "The Guardian (Großbritannien)",
-              tenor: "Skeptisch & analytisch",
-              zusammenfassung: "Würdigt den geplanten Gefangenenaustausch als humanitären Lichtblick, warnt jedoch vor den Maximalforderungen der russischen Delegation, die auf eine Revision der Nachkriegsordnung zielen.",
-              url: "https://www.theguardian.com/world"
-            },
-            {
               medium: "Neue Zürcher Zeitung (Schweiz)",
-              tenor: "Nüchtern & geopolitisch",
-              zusammenfassung: "Betont die neue Rolle der Golfstaaten als unverzichtbare Vermittler und kritisiert die strategische Sprachlosigkeit der Europäischen Union angesichts der amerikanischen Pendeldiplomatie.",
-              url: "https://www.nzz.ch/international"
-            },
-            {
-              medium: "RFE/RL (Transatlantisch)",
-              tenor: "Kritisch zur Verhandlungssubstanz",
-              zusammenfassung: "Hebt hervor, dass selbst begrenzte Deeskalationsschritte für die Energieinfrastruktur am fehlenden Verhandlungsmandat der russischen Seite gescheitert seien.",
-              url: "https://www.rferl.org"
+              tenor: "Analytisch",
+              zusammenfassung: "Betont die Bedeutung redaktioneller Unabhängigkeit im digitalen Zeitalter.",
+              url: "https://www.nzz.ch"
             }
           ]
         }
@@ -676,7 +601,7 @@
     async function initNewspaper() {
       try {
         const res = await fetch('data/ausgabe.json', { cache: 'no-store' });
-        if (!res.ok) throw new Error('Keine externe Ausgabe gefunden');
+        if (!res.ok) throw new Error('Keine aktuelle Ausgabe');
         currentEdition = await res.json();
       } catch (e) {
         currentEdition = FALLBACK_EDITION;
@@ -687,6 +612,24 @@
 
       renderNav();
       renderArticle(0);
+    }
+
+    async function loadArchiveEdition(filename) {
+      if (!filename) {
+        initNewspaper();
+        return;
+      }
+      try {
+        const res = await fetch(`data/archiv/${filename}`, { cache: 'no-store' });
+        if (!res.ok) throw new Error('Archivdatei nicht gefunden');
+        currentEdition = await res.json();
+        document.getElementById('editionDate').textContent =
+          `${currentEdition.datum} · Archiv (Nr. ${currentEdition.ausgabe_nr})`;
+        renderNav();
+        renderArticle(0);
+      } catch (err) {
+        alert("Ausgabe konnte nicht aus dem Archiv geladen werden.");
+      }
     }
 
     function renderNav() {
@@ -780,6 +723,9 @@
         btn.textContent = 'Abendblatt-Modus';
       }
     }
+
+    function openLegalModal() { document.getElementById('legalModal').style.display = 'flex'; }
+    function closeLegalModal() { document.getElementById('legalModal').style.display = 'none'; }
 
     window.addEventListener('scroll', () => {
       const scrollTop = window.scrollY;
