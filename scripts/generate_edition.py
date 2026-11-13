@@ -8,9 +8,27 @@ from datetime import datetime
 from google import genai
 from google.genai import types
 
-# Das SDK greift automatisch auf deinen GEMINI_API_KEY zu
 client = genai.Client()
-MODEL_NAME = "gemini-3.8-flash"  # Aktualisiert auf das neue, stabile Modell
+MODEL_NAME = "gemini-3.8-flash"
+
+def call_gemini_with_retry(prompt, config=None, max_retries=3):
+    """Führt den API-Aufruf aus und fängt 503/High-Demand-Fehler mit Wartezeit ab."""
+    for attempt in range(1, max_retries + 1):
+        try:
+            if config:
+                return client.models.generate_content(model=MODEL_NAME, contents=prompt, config=config)
+            else:
+                return client.models.generate_content(model=MODEL_NAME, contents=prompt)
+        except Exception as e:
+            print(f"API-Hinweis (Versuch {attempt}/{max_retries}): {e}")
+            if "503" in str(e) or "UNAVAILABLE" in str(e) or "high demand" in str(e):
+                if attempt < max_retries:
+                    wait_time = attempt * 10  # 10s, dann 20s warten
+                    print(f"Server ausgelastet (High Demand). Wiche in {wait_time} Sekunden aus und versuche es erneut...")
+                    time.sleep(wait_time)
+                    continue
+            raise e
+    raise Exception("Maximalzahl an Wiederholungen wegen Server-Auslastung erreicht.")
 
 RSS_FEEDS = [
     {"name": "Tagesschau", "land": "Deutschland", "url": "https://www.tagesschau.de/xml/rss2/"},
@@ -102,9 +120,8 @@ def cluster_top_5_topics(rss_items):
     ]
     Meldungen: {json.dumps(rss_items[:35], ensure_ascii=False)}
     """
-    resp = client.models.generate_content(
-        model=MODEL_NAME,
-        contents=prompt,
+    resp = call_gemini_with_retry(
+        prompt, 
         config=types.GenerateContentConfig(response_mime_type="application/json")
     )
     return json.loads(resp.text)
@@ -136,9 +153,8 @@ def generate_deep_essay(topic, sources):
     }}
     Quellenbasis: {json.dumps(sources, ensure_ascii=False)}
     """
-    resp = client.models.generate_content(
-        model=MODEL_NAME,
-        contents=essay_prompt,
+    resp = call_gemini_with_retry(
+        essay_prompt,
         config=types.GenerateContentConfig(response_mime_type="application/json")
     )
     return json.loads(resp.text)
@@ -150,7 +166,7 @@ def main():
         return
         
     topics = cluster_top_5_topics(rss_items)
-    time.sleep(2)
+    time.sleep(3)
 
     fertige_artikel = []
     for idx, topic in enumerate(topics[:5], start=1):
@@ -174,7 +190,7 @@ def main():
             "inhalt_html": essay_data.get("inhalt_html", "<p>Inhalt wird geladen...</p>"),
             "weltspiegel": essay_data.get("weltspiegel", [])
         })
-        time.sleep(2)
+        time.sleep(3)
 
     os.makedirs("data", exist_ok=True)
     ausgabe = {
