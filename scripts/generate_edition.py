@@ -6,11 +6,10 @@ import urllib.parse
 import xml.etree.ElementTree as ET
 from datetime import datetime
 from google import genai
-from google.genai import types
 
-# Exakte Initialisierung für deinen Google Cloud / Vertex AI Schlüssel
-api_key = os.environ.get("GEMINI_API_KEY")
-project_id = os.environ.get("GOOGLE_CLOUD_PROJECT", "53810350049")
+# Standard-Initialisierung für den AI-Studio-Schlüssel (AIza...)
+client = genai.Client()
+MODEL_NAME = "gemini-2.5-flash"
 
 client = genai.Client(
     api_key=api_key,
