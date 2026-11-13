@@ -8,10 +8,9 @@ from datetime import datetime
 from google import genai
 from google.genai import types
 
-# Ganz einfache Initialisierung über den API-Key (ohne Vertex AI / Cloud-Projekt-Zwang)
+# Exakte Initialisierung für deinen Google Cloud / Vertex AI Schlüssel
 api_key = os.environ.get("GEMINI_API_KEY")
-client = genai.Client(api_key=api_key)
-MODEL_NAME = "gemini-2.5-flash"
+project_id = os.environ.get("GOOGLE_CLOUD_PROJECT", "53810350049")
 
 client = genai.Client(
     api_key=api_key,
@@ -96,18 +95,20 @@ def fetch_wikimedia_image(search_query):
 def cluster_top_5_topics(rss_items):
     print("2. Wähle die 5 relevantesten DACH/Welt-Themen...")
     prompt = f"""
-    Du bist Chefredakteur einer anspruchsvollen deutschen Tageszeitung (Stil: NZZ / FAZ).
-    Wähle exakt 5 herausragende Themen aus den folgenden Meldungen aus.
+    Du bist Chefredakteur einer anspruchsvollen deutschen Tageszeitung (Stil: NZZ / FAZ / Die Zeit).
+    Wähle exakt 5 herausragende Themen aus den folgenden Meldungen aus, die für den deutschsprachigen
+    Leseraum heute von höchster politischer, wirtschaftlicher oder gesellschaftlicher Bedeutung sind.
+
     Liefere ein reines JSON-Array mit 5 Objekten:
     [
       {{
         "rubrik": "Geopolitik & Europa",
-        "arbeitstitel": "Titel",
-        "bild_suchbegriff": "Berlin",
+        "arbeitstitel": "Prägnanter Titel",
+        "bild_suchbegriff": "Berlin Reichstag",
         "relevante_quellen_indizes": [0, 1]
       }}
     ]
-    Meldungen: {json.dumps(rss_items[:30], ensure_ascii=False)}
+    Meldungen: {json.dumps(rss_items[:35], ensure_ascii=False)}
     """
     resp = client.models.generate_content(
         model=MODEL_NAME,
@@ -118,21 +119,30 @@ def cluster_top_5_topics(rss_items):
 
 def generate_deep_essay(topic, sources):
     essay_prompt = f"""
-    Schreibe einen hocheloquenten Langform-Essay (ca. 1000 Wörter) zum Thema: {topic['arbeitstitel']}
+    Schreibe einen hocheloquenten, akademisch fundierten Langform-Essay mit echtem Feuilleton-Flair (ca. 1.200 Wörter) für eine deutsche Qualitätszeitung.
+    Thema: {topic['arbeitstitel']}
+
+    STIL-VORGABEN:
+    - Absolutes Verbot von flachen KI-Floskeln.
+    - Beginne mit einer szenischen Beobachtung oder einem harten historischen Fakt.
+    - Gliedere den Text in 3 bis 4 ausführliche Kapitel mit römischen Überschriften (<h2>I. ...</h2>).
+    - Baue tiefe historische Bezüge ein.
+    - Definiere im Text mindestens 2 historische Anker im Format: <span class="history-anchor" onclick="showHistory('key1')">Begriff</span>.
+
     Liefere die Antwort als reines JSON:
     {{
-      "titel": "Schlagzeile",
-      "untertitel": "Untertitel",
-      "leitthese": "Leitthese in 2 Sätzen.",
+      "titel": "Klassische Doppelpunkt-Schlagzeile",
+      "untertitel": "Ausführlicher essayistischer Untertitel",
+      "leitthese": "Zentrale These in 2 Sätzen für die Randspalte.",
       "historische_anker": {{
-        "key1": {{"titel": "Historischer Bezug", "text": "Erläuterung in 3 Sätzen."}}
+        "key1": {{"titel": "Historischer Bezug", "text": "Ausführliche Erläuterung in 3 Sätzen."}}
       }},
-      "inhalt_html": "<p>Absatz 1...</p><h2>I. Kapitel</h2><p>Absatz 2...</p>",
+      "inhalt_html": "<p>Vollständiger Text mit <p>, <h2>, <blockquote>...</p>",
       "weltspiegel": [
-        {{"medium": "Le Monde", "tenor": "Analytisch", "zusammenfassung": "Zusammenfassung.", "url": "https://www.lemonde.fr"}}
+        {{"medium": "Le Monde, Frankreich", "tenor": "Analytisch", "zusammenfassung": "Präzise Zusammenfassung der Haltung des Mediums.", "url": "https://www.lemonde.fr"}}
       ]
     }}
-    Quellen: {json.dumps(sources, ensure_ascii=False)}
+    Quellenbasis: {json.dumps(sources, ensure_ascii=False)}
     """
     resp = client.models.generate_content(
         model=MODEL_NAME,
@@ -144,19 +154,21 @@ def generate_deep_essay(topic, sources):
 def main():
     rss_items = fetch_rss_headlines()
     if not rss_items:
+        print("Keine RSS-Einträge gefunden.")
         return
+        
     topics = cluster_top_5_topics(rss_items)
     time.sleep(2)
 
     fertige_artikel = []
     for idx, topic in enumerate(topics[:5], start=1):
-        print(f"Schreibe Essay {idx}/5...")
+        print(f"Schreibe Essay {idx}/5: {topic.get('arbeitstitel')}...")
         src_subset = [rss_items[i] for i in topic.get("relevante_quellen_indizes", [0]) if i < len(rss_items)]
         if not src_subset:
             src_subset = rss_items[:2]
 
         essay_data = generate_deep_essay(topic, src_subset)
-        bild = fetch_wikimedia_image(topic.get("bild_suchbegriff", "Berlin"))
+        bild = fetch_wikimedia_image(topic.get("bild_suchbegriff", "Berlin Architecture"))
         
         fertige_artikel.append({
             "id": f"essay-{idx}",
@@ -175,12 +187,12 @@ def main():
     os.makedirs("data", exist_ok=True)
     ausgabe = {
         "datum": datetime.now().strftime("%A, %d. %B %Y").replace("Monday", "Montag").replace("Tuesday", "Dienstag").replace("Wednesday", "Mittwoch").replace("Thursday", "Donnerstag").replace("Friday", "Freitag").replace("Saturday", "Samstag").replace("Sunday", "Sonntag"),
-        "ausgabe_nr": "1",
+        "ausgabe_nr": str((datetime.now() - datetime(2026, 1, 1)).days + 1),
         "artikel": fertige_artikel
     }
     with open("data/ausgabe.json", "w", encoding="utf-8") as f:
         json.dump(ausgabe, f, ensure_ascii=False, indent=2)
-    print("Fertig!")
+    print("Fertig! data/ausgabe.json erfolgreich geschrieben.")
 
 if __name__ == "__main__":
     main()
