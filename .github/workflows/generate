@@ -1,0 +1,41 @@
+name: Tägliche Ausgabe generieren
+
+on:
+  schedule:
+    # Läuft jeden Morgen um 04:00 Uhr UTC (05:00 Uhr MEZ)
+    - cron: '0 4 * * *'
+  workflow_dispatch: # Ermöglicht den manuellen Start über den GitHub-Tab
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Python einrichten
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          cache: 'pip'
+
+      - name: Abhängigkeiten installieren
+        run: |
+          pip install google-genai
+
+      - name: Ausgabe generieren
+        env:
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+        run: |
+          python scripts/generate_edition.py
+
+      - name: Änderungen committen und pushen
+        run: |
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+          git add data/ausgabe.json data/archiv/
+          git diff --staged --quiet || git commit -m "Tagesausgabe & Archiv aktualisiert: $(date +'%Y-%m-%d')"
+          git push
