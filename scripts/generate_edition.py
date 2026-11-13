@@ -9,35 +9,26 @@ from google import genai
 from google.genai import types
 
 client = genai.Client()
+MODEL_NAME = "gemini-3.8-flash"
 
-# Priorisierte Modell-Liste: Weicht bei 503-Überlastung sofort auf das nächste Modell aus
-MODELS = [
-    "gemini-3.8-flash",
-    "gemini-3.8-flash-lite",
-    "gemini-3.5-flash",
-    "gemini-3.0-flash"
-]
-
-def call_gemini_smart(prompt, config=None):
-    """Probiert die Modell-Liste durch und fängt Überlastungen (503) oder alte Endpunkte (404) ab."""
-    for model_name in MODELS:
-        for attempt in range(1, 3):  # Pro Modell max. 2 Versuche
-            try:
-                if config:
-                    return client.models.generate_content(model=model_name, contents=prompt, config=config)
-                else:
-                    return client.models.generate_content(model=model_name, contents=prompt)
-            except Exception as e:
-                err_str = str(e)
-                print(f"Hinweis bei {model_name} (Versuch {attempt}): {err_str[:120]}...")
-                if "404" in err_str or "NOT_FOUND" in err_str:
-                    # Modell existiert nicht mehr -> sofort nächstes Modell nehmen
-                    break
-                if "503" in err_str or "429" in err_str or "UNAVAILABLE" in err_str or "high demand" in err_str:
-                    time.sleep(5)
-                    continue
-                raise e
-    raise Exception("Alle Ausweich-Modelle sind aktuell überlastet.")
+def call_gemini_safe(prompt, config=None):
+    """Führt den Aufruf aus und wartet bei Rate-Limits (429) oder Überlastung (503) geduldig ab."""
+    for attempt in range(1, 4):
+        try:
+            if config:
+                return client.models.generate_content(model=MODEL_NAME, contents=prompt, config=config)
+            else:
+                return client.models.generate_content(model=MODEL_NAME, contents=prompt)
+        except Exception as e:
+            err_str = str(e)
+            print(f"API-Hinweis (Versuch {attempt}/3): {err_str[:100]}...")
+            if "429" in err_str or "503" in err_str or "ResourceExhausted" in err_str:
+                wait_time = attempt * 15  # 15s, 30s, 45s warten, um das Limit abzukühlen
+                print(f"Rate-Limit / Überlastung erreicht. Wate {wait_time} Sekunden...")
+                time.sleep(wait_time)
+                continue
+            raise e
+    raise Exception("API-Limit dauerhaft überschritten.")
 
 RSS_FEEDS = [
     {"name": "Tagesschau", "land": "Deutschland", "url": "https://www.tagesschau.de/xml/rss2/"},
@@ -47,7 +38,7 @@ RSS_FEEDS = [
     {"name": "FAZ Aktuell", "land": "Deutschland", "url": "https://www.faz.net/rss/aktuell/"}
 ]
 
-def fetch_rss_headlines(limit_per_feed=10):
+def fetch_rss_headlines(limit_per_feed=8):
     print("1. Lese offene RSS-Feeds...")
     items = []
     for feed in RSS_FEEDS:
@@ -78,7 +69,7 @@ def fetch_rss_headlines(limit_per_feed=10):
                         "medium": feed["name"],
                         "land": feed["land"],
                         "titel": title,
-                        "kurztext": desc[:250],
+                        "kurztext": desc[:200],
                         "url": link.strip()
                     })
         except Exception as e:
@@ -114,22 +105,20 @@ def fetch_wikimedia_image(search_query):
 def cluster_top_5_topics(rss_items):
     print("2. Wähle die 5 relevantesten DACH/Welt-Themen...")
     prompt = f"""
-    Du bist Chefredakteur einer anspruchsvollen deutschen Tageszeitung (Stil: NZZ / FAZ / Die Zeit).
-    Wähle exakt 5 herausragende Themen aus den folgenden Meldungen aus, die für den deutschsprachigen
-    Leseraum heute von höchster politischer, wirtschaftlicher oder gesellschaftlicher Bedeutung sind.
-
+    Du bist Chefredakteur einer anspruchsvollen deutschen Tageszeitung (Stil: NZZ / FAZ).
+    Wähle exakt 5 herausragende Themen aus den folgenden Meldungen aus.
     Liefere ein reines JSON-Array mit 5 Objekten:
     [
       {{
         "rubrik": "Geopolitik & Europa",
-        "arbeitstitel": "Prägnanter Titel",
-        "bild_suchbegriff": "Berlin Reichstag",
+        "arbeitstitel": "Titel",
+        "bild_suchbegriff": "Berlin",
         "relevante_quellen_indizes": [0, 1]
       }}
     ]
     Meldungen: {json.dumps(rss_items[:20], ensure_ascii=False)}
     """
-    resp = call_gemini_smart(
+    resp = call_gemini_safe(
         prompt, 
         config=types.GenerateContentConfig(response_mime_type="application/json")
     )
@@ -137,32 +126,23 @@ def cluster_top_5_topics(rss_items):
 
 def generate_deep_essay(topic, sources):
     essay_prompt = f"""
-    Schreibe einen hocheloquenten, akademisch fundierten Langform-Essay mit echtem Feuilleton-Flair (ca. 1.200 Wörter) für eine deutsche Qualitätszeitung.
-    Thema: {topic['arbeitstitel']}
-
-    STIL-VORGABEN:
-    - Absolutes Verbot von flachen KI-Floskeln.
-    - Beginne mit einer szenischen Beobachtung oder einem harten historischen Fakt.
-    - Gliedere den Text in 3 bis 4 ausführliche Kapitel mit römischen Überschriften (<h2>I. ...</h2>).
-    - Baue tiefe historische Bezüge ein.
-    - Definiere im Text mindestens 2 historische Anker im Format: <span class="history-anchor" onclick="showHistory('key1')">Begriff</span>.
-
+    Schreibe einen hocheloquenten Langform-Essay (ca. 900 Wörter) zum Thema: {topic['arbeitstitel']}
     Liefere die Antwort als reines JSON:
     {{
-      "titel": "Klassische Doppelpunkt-Schlagzeile",
-      "untertitel": "Ausführlicher essayistischer Untertitel",
-      "leitthese": "Zentrale These in 2 Sätzen für die Randspalte.",
+      "titel": "Schlagzeile",
+      "untertitel": "Untertitel",
+      "leitthese": "Leitthese in 2 Sätzen.",
       "historische_anker": {{
-        "key1": {{"titel": "Historischer Bezug", "text": "Ausführliche Erläuterung in 3 Sätzen."}}
+        "key1": {{"titel": "Bezug", "text": "Erläuterung."}}
       }},
-      "inhalt_html": "<p>Vollständiger Text mit <p>, <h2>, <blockquote>...</p>",
+      "inhalt_html": "<p>Absatz...</p><h2>I. Kapitel</h2><p>Absatz...</p>",
       "weltspiegel": [
-        {{"medium": "Le Monde, Frankreich", "tenor": "Analytisch", "zusammenfassung": "Präzise Zusammenfassung der Haltung des Mediums.", "url": "https://www.lemonde.fr"}}
+        {{"medium": "Le Monde", "tenor": "Analytisch", "zusammenfassung": "Zusammenfassung.", "url": "https://www.lemonde.fr"}}
       ]
     }}
-    Quellenbasis: {json.dumps(sources, ensure_ascii=False)}
+    Quellen: {json.dumps(sources, ensure_ascii=False)}
     """
-    resp = call_gemini_smart(
+    resp = call_gemini_safe(
         essay_prompt,
         config=types.GenerateContentConfig(response_mime_type="application/json")
     )
@@ -171,35 +151,36 @@ def generate_deep_essay(topic, sources):
 def main():
     rss_items = fetch_rss_headlines()
     if not rss_items:
-        print("Keine RSS-Einträge gefunden.")
         return
         
     topics = cluster_top_5_topics(rss_items)
-    time.sleep(2)
+    time.sleep(10)  # Ausgiebige Pause nach dem Clustering
 
     fertige_artikel = []
     for idx, topic in enumerate(topics[:5], start=1):
-        print(f"Schreibe Essay {idx}/5: {topic.get('arbeitstitel')}...")
-        src_subset = [rss_items[i] for i in topic.get("relevante_quellen_indizes", [0]) if i < len(rss_items)]
+        print(f"Schreibe Essay {idx}/5...")
+        src_subset = [rss_items[i] for i in topic.get("relevante_keys", [0]) if i < len(rss_items)]
         if not src_subset:
             src_subset = rss_items[:2]
 
         essay_data = generate_deep_essay(topic, src_subset)
-        bild = fetch_wikimedia_image(topic.get("bild_suchbegriff", "Berlin Architecture"))
+        bild = fetch_wikimedia_image(topic.get("bild_suchbegriff", "Berlin"))
         
         fertige_artikel.append({
             "id": f"essay-{idx}",
             "rubrik": topic.get("rubrik", "Zeitgeschehen"),
-            "lesezeit": "12 Min. Lesezeit",
+            "lesezeit": "10 Min. Lesezeit",
             "titel": essay_data.get("titel", topic["arbeitstitel"]),
             "untertitel": essay_data.get("untertitel", ""),
             "leitthese": essay_data.get("leitthese", ""),
             "bild": bild,
             "historische_anker": essay_data.get("historische_anker", {}),
-            "inhalt_html": essay_data.get("inhalt_html", "<p>Inhalt wird geladen...</p>"),
+            "inhalt_html": essay_data.get("inhalt_html", "<p>Inhalt...</p>"),
             "weltspiegel": essay_data.get("weltspiegel", [])
         })
-        time.sleep(2)
+        
+        print(print(f"Warte 15 Sekunden zur Ratenbegrenzung..."))
+        time.sleep(15)  # Wichtig: 15 Sekunden Pause zwischen jedem Essay, um 429-Fehler zu verhindern!
 
     os.makedirs("data", exist_ok=True)
     ausgabe = {
