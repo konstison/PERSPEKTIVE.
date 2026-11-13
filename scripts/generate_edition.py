@@ -6,17 +6,10 @@ import urllib.parse
 import xml.etree.ElementTree as ET
 from datetime import datetime
 from google import genai
+from google.genai import types
 
 # Das SDK greift automatisch auf die Umgebungsvariable GEMINI_API_KEY zu
 client = genai.Client()
-MODEL_NAME = "gemini-2.5-flash"
-
-client = genai.Client(
-    api_key=api_key,
-    vertexai=True,
-    project=project_id,
-    location="us-central1"
-)
 MODEL_NAME = "gemini-2.5-flash"
 
 RSS_FEEDS = [
