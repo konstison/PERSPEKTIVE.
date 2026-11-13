@@ -1,6 +1,7 @@
 import os
 import json
 import time
+import sys
 import urllib.request
 import urllib.parse
 import xml.etree.ElementTree as ET
@@ -8,11 +9,14 @@ from datetime import datetime
 from google import genai
 from google.genai import types
 
+# Erzwingt die sofortige Ausgabe der Logs im GitHub-Terminal
+sys.stdout.reconfigure(line_buffering=True)
+
 client = genai.Client()
 MODEL_NAME = "gemini-3.8-flash"
 
 def call_gemini_safe(prompt, config=None):
-    """Führt den Aufruf aus und wartet bei Rate-Limits (429) oder Überlastung (503) geduldig ab."""
+    """Führt den API-Aufruf aus und fängt Raten-Limits (429) oder Server-Überlastung (503) ab."""
     for attempt in range(1, 4):
         try:
             if config:
@@ -21,10 +25,10 @@ def call_gemini_safe(prompt, config=None):
                 return client.models.generate_content(model=MODEL_NAME, contents=prompt)
         except Exception as e:
             err_str = str(e)
-            print(f"API-Hinweis (Versuch {attempt}/3): {err_str[:100]}...")
-            if "429" in err_str or "503" in err_str or "ResourceExhausted" in err_str:
-                wait_time = attempt * 15  # 15s, 30s, 45s warten, um das Limit abzukühlen
-                print(f"Rate-Limit / Überlastung erreicht. Wate {wait_time} Sekunden...")
+            print(f"API-Hinweis (Versuch {attempt}/3): {err_str[:120]}...")
+            if "429" in err_str or "503" in err_str or "ResourceExhausted" in err_str or "UNAVAILABLE" in err_str:
+                wait_time = attempt * 15  # 15s, 30s, 45s abkühlen lassen
+                print(f"Überlastung/Limit erreicht. Warte {wait_time} Sekunden...")
                 time.sleep(wait_time)
                 continue
             raise e
@@ -106,7 +110,8 @@ def cluster_top_5_topics(rss_items):
     print("2. Wähle die 5 relevantesten DACH/Welt-Themen...")
     prompt = f"""
     Du bist Chefredakteur einer anspruchsvollen deutschen Tageszeitung (Stil: NZZ / FAZ).
-    Wähle exakt 5 herausragende Themen aus den folgenden Meldungen aus.
+    Wähle exakt 5 herausragende Themen aus den folgenden Meldungen aus, die für den deutschsprachigen Leseraum heute von höchster Bedeutung sind.
+    
     Liefere ein reines JSON-Array mit 5 Objekten:
     [
       {{
@@ -116,7 +121,7 @@ def cluster_top_5_topics(rss_items):
         "relevante_quellen_indizes": [0, 1]
       }}
     ]
-    Meldungen: {json.dumps(rss_items[:20], ensure_ascii=False)}
+    Meldungen: {json.dumps(rss_items[:25], ensure_ascii=False)}
     """
     resp = call_gemini_safe(
         prompt, 
@@ -127,27 +132,27 @@ def cluster_top_5_topics(rss_items):
 def generate_deep_essay(topic, sources):
     essay_prompt = f"""
     Du bist ein erfahrener, nüchterner Leitartikler einer europäischen Qualitätszeitung (Stil: NZZ / FAZ). 
-    Schreibe einen tiefgründigen, glasklaren und sachlich fundierten Essay (ca. 1.400 bis 1.600 Wörter, damit der Text genügend Raum für Argumente hat und nicht überladen wirkt).
-    Thema: {topic['arbeitstitel']}
+    Schreibe einen tiefgründigen, glasklaren und sachlich fundierten Essay (ca. 1.400 bis 1.600 Wörter, damit der Text genügend Raum für Argumente hat) zum Thema: {topic['arbeitstitel']}
 
     STIL- UND INHALTSVORGABEN:
-    - Absolute Sachlichkeit: Vermeide jede Form von pathetischem Pathos, aufgesetzten Metaphern-Kaskaden oder reißerischem Fachjargon. Schreibe elegant, präzise und intellektuell greifbar.
-    - Faktentreue: Halte dich strikt an die beiliegenden Quellen und historischen Tatsachen (keine erfundenen politischen Rollen oder veränderten Biografien).
-    - Aufbau: Gliedere den Text in 4 ausführliche, inhaltlich saubere Kapitel mit klassischen römischen Überschriften (<h2>I. ...</h2>).
+    - Absolute Sachlichkeit: Vermeide pathetisches Pathos, aufgesetzte Metaphern-Kaskaden oder reißerischen Jargon. Schreibe elegant, präzise und intellektuell greifbar.
+    - Faktentreue: Halte dich strikt an die beiliegenden Quellen und historischen Tatsachen (keine erfundenen Rollen oder Biografien).
+    - Aufbau: Gliedere den Text in 4 ausführliche Kapitel mit klassischen römischen Überschriften (<h2>I. ...</h2>).
     - Historische Einbettung: Verorte das aktuelle Geschehen in einem echten historischen oder strukturpolitischen Kontext.
     - Definiere im Text genau 2 historische oder begriffliche Anker im Format: <span class="history-anchor" onclick="showHistory('key1')">Begriff</span>.
+    - Weltspiegel-Hinweis: Da direkte Artikel-URLs via RSS oft nur auf Startseiten leiten, liefere im Feld "url" stattdessen entweder den direkten Permalink oder einen sauberen Verweisstring.
 
     Liefere die Antwort als reines JSON:
     {{
       "titel": "Klassische Doppelpunkt-Schlagzeile",
       "untertitel": "Ausführlicher, sachlicher Untertitel",
-      "leitthese": "Zentrale These in 2 prägnanten Sätzen für die Randspalte.",
+      "leitthese": "Zentrale These in 2 prägnanten Sätzen.",
       "historische_anker": {{
-        "key1": {{"titel": "Historischer Bezug", "text": "Sachliche, präzise Erläuterung in 3 Sätzen."}}
+        "key1": {{"titel": "Historischer Bezug", "text": "Sachliche Erläuterung in 3 Sätzen."}}
       }},
       "inhalt_html": "<p>Vollständiger Text mit <p>, <h2>, <blockquote>...</p>",
       "weltspiegel": [
-        {{"medium": "Le Monde, Frankreich", "tenor": "Analytisch", "zusammenfassung": "Präzise Zusammenfassung der Haltung des Mediums.", "url": "https://www.lemonde.fr"}}
+        {{"medium": "Le Monde, Frankreich", "tenor": "Analytisch", "zusammenfassung": "Präzise Zusammenfassung der Haltung des Mediums.", "url": "https://www.lemonde.fr (Archiv)"}}
       ]
     }}
     Quellenbasis: {json.dumps(sources, ensure_ascii=False)}
@@ -161,46 +166,60 @@ def generate_deep_essay(topic, sources):
 def main():
     rss_items = fetch_rss_headlines()
     if not rss_items:
+        print("Keine RSS-Einträge gefunden.")
         return
         
     topics = cluster_top_5_topics(rss_items)
-    time.sleep(10)  # Ausgiebige Pause nach dem Clustering
+    time.sleep(5)
 
     fertige_artikel = []
     for idx, topic in enumerate(topics[:5], start=1):
-        print(f"Schreibe Essay {idx}/5...")
-        src_subset = [rss_items[i] for i in topic.get("relevante_keys", [0]) if i < len(rss_items)]
+        print(f"Schreibe Essay {idx}/5: {topic.get('arbeitstitel')}...")
+        
+        indices = topic.get("relevante_quellen_indizes", [0, 1])
+        src_subset = [rss_items[i] for i in indices if i < len(rss_items)]
         if not src_subset:
             src_subset = rss_items[:2]
 
         essay_data = generate_deep_essay(topic, src_subset)
-        bild = fetch_wikimedia_image(topic.get("bild_suchbegriff", "Berlin"))
+        bild = fetch_wikimedia_image(topic.get("bild_suchbegriff", "Berlin Architecture"))
         
         fertige_artikel.append({
             "id": f"essay-{idx}",
             "rubrik": topic.get("rubrik", "Zeitgeschehen"),
-            "lesezeit": "10 Min. Lesezeit",
+            "lesezeit": "14 Min. Lesezeit",
             "titel": essay_data.get("titel", topic["arbeitstitel"]),
             "untertitel": essay_data.get("untertitel", ""),
             "leitthese": essay_data.get("leitthese", ""),
             "bild": bild,
             "historische_anker": essay_data.get("historische_anker", {}),
-            "inhalt_html": essay_data.get("inhalt_html", "<p>Inhalt...</p>"),
+            "inhalt_html": essay_data.get("inhalt_html", "<p>Inhalt wird geladen...</p>"),
             "weltspiegel": essay_data.get("weltspiegel", [])
         })
         
-        print(print(f"Warte 15 Sekunden zur Ratenbegrenzung..."))
-        time.sleep(15)  # Wichtig: 15 Sekunden Pause zwischen jedem Essay, um 429-Fehler zu verhindern!
+        print("Warte 15 Sekunden zur Ratenbegrenzung...")
+        time.sleep(15)
 
     os.makedirs("data", exist_ok=True)
+    os.makedirs("data/archiv", exist_ok=True)
+    
+    heute_str = datetime.now().strftime("%Y-%m-%d")
     ausgabe = {
         "datum": datetime.now().strftime("%A, %d. %B %Y").replace("Monday", "Montag").replace("Tuesday", "Dienstag").replace("Wednesday", "Mittwoch").replace("Thursday", "Donnerstag").replace("Friday", "Freitag").replace("Saturday", "Samstag").replace("Sunday", "Sonntag"),
         "ausgabe_nr": str((datetime.now() - datetime(2026, 1, 1)).days + 1),
         "artikel": fertige_artikel
     }
+    
+    # 1. Hauptausgabe für die Startseite
     with open("data/ausgabe.json", "w", encoding="utf-8") as f:
         json.dump(ausgabe, f, ensure_ascii=False, indent=2)
-    print("Fertig! data/ausgabe.json erfolgreich geschrieben.")
+        
+    # 2. Gleichzeitig im Archiv ablegen
+    archiv_pfad = f"data/archiv/{heute_str}.json"
+    with open(archiv_pfad, "w", encoding="utf-8") as f:
+        json.dump(ausgabe, f, ensure_ascii=False, indent=2)
+        
+    print(f"Fertig! data/ausgabe.json geschrieben und unter {archiv_pfad} archiviert.")
 
 if __name__ == "__main__":
     main()
