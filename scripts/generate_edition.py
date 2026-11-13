@@ -85,7 +85,7 @@ def fetch_wikimedia_image(search_query):
     try:
         encoded = urllib.parse.quote(search_query)
         api_url = f"https://commons.wikimedia.org/w/api.php?action=query&generator=search&gsrsearch=filetype:bitmap+{encoded}&gsrnamespace=6&gsrlimit=1&prop=imageinfo&iiprop=url|extmetadata&iiurlwidth=1280&format=json"
-        req = urllib.request.Request(api_url, headers={"User-Agent": "PerspektiveNewspaper/1.0"})
+        req = urllib.request.Request(api_url, headers={"User-Agent": "KorrespondentNewspaper/1.0"})
         with urllib.request.urlopen(req, timeout=10) as resp:
             data = json.loads(resp.read().decode("utf-8"))
         pages = data.get("query", {}).get("pages", {})
