@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html lang="de" data-theme="day">
-<head><!-- PWA & App-Icon Konfiguration -->
+<head>
+  <!-- PWA & App-Icon Konfiguration -->
   <link rel="manifest" href="./manifest.json">
   <link rel="icon" type="image/svg+xml" href="./icon.svg">
   <link rel="apple-touch-icon" href="./icon.svg">
@@ -8,12 +9,15 @@
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <meta name="apple-mobile-web-app-title" content="PERSPEKTIVE.">
+  
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>PERSPEKTIVE — Tagesblatt für Analyse, Geschichte & Weltspiegel</title>
+  
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,500;0,600;0,700;1,400;1,600&family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;1,6..72,400&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+  
   <style>
     :root {
       --bg-paper: #FAF7F2;
@@ -437,6 +441,83 @@
       gap: 2rem;
       flex-wrap: wrap;
     }
+
+    /* =========================================================
+       MOBILE OPTIMIERUNG (Nur für Smartphones bis 768px Breite)
+       Desktop-Ansicht bleibt zu 100 % unverändert!
+       ========================================================= */
+    @media (max-width: 768px) {
+      header.masthead {
+        padding: 1rem 1rem 0.85rem !important;
+      }
+      .masthead-meta {
+        font-size: 0.68rem !important;
+        gap: 0.5rem !important;
+        padding-bottom: 0.6rem !important;
+      }
+      .masthead-title-wrap {
+        padding: 1rem 0 0.8rem !important;
+      }
+      h1.paper-name {
+        font-size: 2.6rem !important;
+        letter-spacing: 0.08em !important;
+      }
+      .paper-motto {
+        font-size: 0.9rem !important;
+      }
+
+      nav.edition-nav {
+        padding: 0.6rem 1rem !important;
+        grid-template-columns: 1fr !important;
+        gap: 0.5rem !important;
+      }
+      .nav-card {
+        padding: 0.45rem 0.6rem !important;
+      }
+
+      main.article-shell {
+        padding: 1.5rem 1rem 3rem !important;
+        gap: 1.5rem !important;
+      }
+      .article-header {
+        margin-bottom: 1.5rem !important;
+        padding-bottom: 1rem !important;
+      }
+      .article-headline {
+        font-size: 1.85rem !important;
+        line-height: 1.18 !important;
+        margin-bottom: 0.75rem !important;
+      }
+      .article-subhead {
+        font-size: 1.05rem !important;
+        line-height: 1.45 !important;
+      }
+
+      .essay-body {
+        font-size: 1.05rem !important;
+      }
+      .essay-body p {
+        margin-bottom: 1.2rem !important;
+      }
+      .essay-body h2 {
+        font-size: 1.4rem !important;
+        margin: 2rem 0 0.8rem !important;
+        padding-top: 0.9rem !important;
+      }
+      .essay-body blockquote {
+        margin: 1.4rem 0 !important;
+        padding: 0.8rem 1rem !important;
+        font-size: 1.05rem !important;
+      }
+
+      section.weltspiegel {
+        margin-top: 2.5rem !important;
+        padding: 1.2rem !important;
+      }
+      .weltspiegel-grid {
+        grid-template-columns: 1fr !important;
+      }
+    }
   </style>
 </head>
 <body>
@@ -498,7 +579,6 @@
   </footer>
 
   <script>
-    // Fallback-Ausgabe (falls data/ausgabe.json lokal ohne Server geöffnet wird)
     const FALLBACK_EDITION = {
       datum: "Donnerstag, 12. November 2026",
       ausgabe_nr: "316",
@@ -538,7 +618,7 @@
             <p>Dass Abu Dhabi als Verhandlungsort gewählt wurde, ist dabei kein Zufall. Die Golfstaaten haben sich in den vergangenen Jahren als post-westliche Drehscheiben etabliert: wirtschaftlich verflochten mit Washington und Brüssel, zugleich sanktionsfrei offen für Moskau und Peking. Diese neue Geografie der Diplomatie zeigt, dass der globale Süden längst nicht mehr nur Zuschauer europäischer Krisen ist, sondern deren logistische Bühne bereitstellt.</p>
 
             <h2>III. Die deutsche und europäische Perspektive</h2>
-            <p>Für Berlin und Brüssel offenbart Abu Dhabi ein strukturelles Dilemma. Während über die künftige Statik des europäischen Kontinents debattiert wird, sitzen die europäischen Hauptstädte nicht mit am Haupttisch. Solange Europa zwar als finanzieller Garant für den künftigen Wiederaufbau und als Adressat russischer Sicherheitsforderungen eingeplant ist, aber außenpolitisch nicht als geschlossener Akteur auftritt, bleibt seine strategische Souveränität ein bloßes Postulat.</p>
+            <p>Für Berlin und Brüssel offenbart Abu Dhabi ein strukturelles Dilemma. Während über die künftige Statik des Kontinents debattiert wird, sitzen die europäischen Hauptstädte nicht mit am Haupttisch. Solange Europa zwar als finanzieller Garant für den künftigen Wiederaufbau und als Adressat russischer Sicherheitsforderungen eingeplant ist, aber außenpolitisch nicht als geschlossener Akteur auftritt, bleibt seine strategische Souveränität ein bloßes Postulat.</p>
             <p>Für die deutsche Außenpolitik bedeutet dies eine unbequeme Wahrheit: Scheckbuchdiplomatie ersetzt keinen sicherheitspolitischen Hebel. Wer nicht als bloße Verhandlungsmasse zwischen Washington und Moskau zerrieben werden will, muss eigene Abschreckungs- und Handlungsfähigkeiten so schnell aufbauen, dass kein Abkommen über Europa ohne Europa geschlossen werden kann.</p>
           `,
           weltspiegel: [
@@ -697,7 +777,9 @@
 
     initNewspaper();
   </script>
-</body><script>
+
+  <!-- Service Worker Registrierung für PWA -->
+  <script>
     if ('serviceWorker' in navigator) {
       window.addEventListener('load', () => {
         navigator.serviceWorker.register('./sw.js')
@@ -705,4 +787,5 @@
       });
     }
   </script>
+</body>
 </html>
