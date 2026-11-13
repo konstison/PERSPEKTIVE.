@@ -9,9 +9,10 @@ from google import genai
 from google.genai import types
 
 client = genai.Client()
-MODEL_NAME = "gemini-3.8-flash"
+# Wechsel auf ein stabiles, weniger überlastetes Produktionsmodell
+MODEL_NAME = "gemini-1.5-flash"
 
-def call_gemini_with_retry(prompt, config=None, max_retries=3):
+def call_gemini_with_retry(prompt, config=None, max_retries=4):
     """Führt den API-Aufruf aus und fängt 503/High-Demand-Fehler mit Wartezeit ab."""
     for attempt in range(1, max_retries + 1):
         try:
@@ -21,10 +22,10 @@ def call_gemini_with_retry(prompt, config=None, max_retries=3):
                 return client.models.generate_content(model=MODEL_NAME, contents=prompt)
         except Exception as e:
             print(f"API-Hinweis (Versuch {attempt}/{max_retries}): {e}")
-            if "503" in str(e) or "UNAVAILABLE" in str(e) or "high demand" in str(e):
+            if "503" in str(e) or "UNAVAILABLE" in str(e) or "high demand" in str(e) or "overloaded" in str(e):
                 if attempt < max_retries:
-                    wait_time = attempt * 10  # 10s, dann 20s warten
-                    print(f"Server ausgelastet (High Demand). Wiche in {wait_time} Sekunden aus und versuche es erneut...")
+                    wait_time = attempt * 12  # 12s, 24s, 36s warten
+                    print(f"Server ausgelastet. Warte {wait_time} Sekunden vor dem nächsten Versuch...")
                     time.sleep(wait_time)
                     continue
             raise e
